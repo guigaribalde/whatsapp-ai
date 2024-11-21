@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Session {
+  id        Int      @id @default(autoincrement())
+  phone     String   @unique
+  chats     Chat[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  centralChatId String?
+  workingHours  String?
+  staleTime     String?
+  blacklist     BlackContact[]
+
+  @@index([phone])
+}
+
+model BlackContact {
+  id    Int    @id @default(autoincrement())
+  phone String
+
+  session   Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sessionId Int
+
+  @@index([phone])
+}
+
+model Chat {
+  id Int @id @default(autoincrement())
+
+  with     String
+  messages Message[]
+
+  session   Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sessionId Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sessionId])
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  role      String
+  content   String
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  chatId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([chatId])
+}
